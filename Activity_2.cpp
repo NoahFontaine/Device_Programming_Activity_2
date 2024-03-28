@@ -6,7 +6,6 @@
 #define LM75_REG_CONF (0x01)
 #define LM75_ADDR     (0x90)
 #define LM75_REG_TOS (0x03)
-#define LM75_REG_THYST (0x02)
 
 I2C i2c(I2C_SDA, I2C_SCL);
 
@@ -47,12 +46,12 @@ void onRecordTempTicker(void)
     time_running++; //Increments time by 1s
 }
 
-void trigger_alarm() //Flash LEDs when temp too high
+void trigger_alarm() //When temp too high
 {
-        led1=!led1;
-        led2=!led2;
-        led3=!led3;
-        stop=1;
+    led1=!led1; // Have no idea why but need to include this for it to work
+    led2=!led2;
+    led3=!led3;
+    stop=1;
 }
 
 int main(){
@@ -72,18 +71,10 @@ int main(){
     }
 
     float tos=28; // TOS temperature
-    float thyst=26; // THYST temperature
 
     // This section of code sets the TOS register
     data_write[0]=LM75_REG_TOS;
     i16 = (int16_t)(tos*256) & 0xFF80;
-    data_write[1]=(i16 >> 8) & 0xff;
-    data_write[2]=i16 & 0xff;
-    i2c.write(LM75_ADDR, data_write, 3, 0);
-
-    // This section of code sets the THYST register
-    data_write[0]=LM75_REG_THYST;
-    i16 = (int16_t)(thyst*256) & 0xFF80;
     data_write[1]=(i16 >> 8) & 0xff;
     data_write[2]=i16 & 0xff;
     i2c.write(LM75_ADDR, data_write, 3, 0);
@@ -113,17 +104,18 @@ int main(){
 
     // If temp has reached threshold
     pc.printf("ALARM TRIGGERED");
-    // Print las 60s
+    // Print last 60s
     for(int i = 0; i < 60; i++){
         pc.printf("Temperature "), pc.printf("%d",60-i), pc.printf(" seconds ago: %.3f\n",t_array[i]);
     }
     while(true){
-        led1=false;
-        led2=true;
-        led3=false;
-        wait(0.1);
-        led2=false;
-        led3=true;
-        wait(0.1);
+        led1=1;
+        led2=1;
+        led3=1;
+        wait(0.2);
+        led1=0;
+        led2=0;
+        led3=0;
+        wait(0.2);
     }
 }
